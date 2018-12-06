@@ -1,0 +1,130 @@
+USE dbphp7;
+
+SELECT * FROM tb_maps;
+
+CREATE TABLE tb_ubicomp (
+general_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+tempo TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+childs_id INT NOT NULL,
+adults_id INT NOT NULL,
+RSSI_level DECIMAL(10,2),
+state VARCHAR(255),
+city VARCHAR(255),
+address VARCHAR (255),
+adults_lat DECIMAL(10, 8) NOT NULL,
+adults_lon DECIMAL(11, 8) NOT NULL);
+
+DROP TABLE tb_ubicomp;
+
+SELECT * FROM tb_ubicomp;
+
+
+ALTER TABLE tb_ubicomp
+ADD COLUMN child_name VARCHAR (255) AFTER tempo;
+
+ALTER TABLE tb_ubicomp
+DROP child_id;
+
+
+ALTER TABLE tb_ubicomp
+CHANGE adults_lon adult_lon VARCHAR(255);
+
+
+
+
+SELECT * FROM tb_ubicomp;
+
+
+SELECT * FROM tb_usuarios;
+
+START TRANSACTION;
+
+ROLLBACK;
+
+
+
+UPDATE tb_usuarios SET dessenha = CASE
+    WHEN idusuario = 1592 THEN 1
+    when	idusuario=	2952	then 	4
+    WHEN idusuario = 4925 THEN 3
+    ELSE 9999
+    END
+WHERE idusuario IN(1592,2952,4925);
+
+
+
+
+START TRANSACTION;
+
+COMMIT;
+
+ROLLBACK;
+
+SELECT * FROM tb_ubicomp;
+
+UPDATE tb_ubicomp SET adult_name = CASE
+
+
+    ELSE 0000
+    END
+WHERE general_id IN(
+
+);
+
+START TRANSACTION;
+
+COMMIT;
+
+ROLLBACK;
+
+SELECT * FROM tb_ubicomp WHERE adult_id = 1029757;
+
+SELECT id, razao_social, endereco, numero, cidade, uf, cep, latitude, longitude, bairro, 
+    (6371 * acos( cos( radians($LAT) ) 
+ * cos( radians( latitude ) ) 
+ * cos( radians( longitude ) - radians($LNG) ) 
+ + sin( radians($LAT) ) 
+ * sin( radians( latitude ) ) ) ) AS distancia 
+    FROM tec_tecnico
+    ORDER BY distancia;
+    
+    
+    
+    
+    
+SELECT general_id, tempo, child_id, adult_id, RSSI_level, state, city, address, adult_lat, adult_lon, 
+    (6371 * acos(cos(radians(34.7993)) 
+ * cos(radians(adult_lat)) 
+ * cos(radians(adult_lon)-radians(-92.2551)) 
+ + sin(radians(34.7993)) 
+ * sin( radians(adult_lat)))) AS distancia_km 
+    FROM tb_ubicomp
+    ORDER BY distancia_km;    
+
+
+
+--PROCEDURE FIND CHILD--
+DELIMITER $$
+CREATE PROCEDURE find_child(IN id_miss_child INT, IN id_adulto_searcher INT)
+BEGIN
+	SET @lat_adult_searcher := (SELECT adult_lat FROM tb_ubicomp WHERE adult_id = id_adulto_searcher ORDER BY tempo DESC LIMIT 1);
+	SET	@lon_adult_searcher := (SELECT adult_lon FROM tb_ubicomp WHERE adult_id = id_adulto_searcher ORDER BY tempo DESC LIMIT 1);
+    SELECT general_id, tempo, child_id, child_name, adult_id, adult_name, RSSI_level, state, city, address, adult_lat, adult_lon, 
+    (6371 * acos(cos(radians(@lat_adult_searcher)) 
+ * cos(radians(adult_lat)) 
+ * cos(radians(adult_lon)-radians(@lon_adult_searcher)) 
+ + sin(radians(@lat_adult_searcher)) 
+ * sin( radians(adult_lat)))) AS distancia_km_for_you 
+    FROM tb_ubicomp
+    WHERE child_id = id_miss_child
+    ORDER BY tempo;
+END $$
+DELIMITER ;
+
+CALL find_child(2740453,1402877);
+
+DROP PROCEDURE find_child;
+
+
+SELECT * FROM tb_ubicomp WHERE adult_name = 'India Eriksen';
+
